@@ -1,5 +1,7 @@
-import { FormEvent,  useState } from "react"
+import { FormEvent, Suspense, useState } from "react"
 import WeatherOutput from "./WeatherOutput.js"
+import Loading from "./Loading.js";
+import { Button } from 'react-bootstrap';
 
 function App() {
 
@@ -21,26 +23,29 @@ function App() {
         .then(response => response.json())
         .then(response => setResponse(response))
         .catch(err => console.error(err));
-    }, 1000);
+    }, 8000);
 
   }
- 
+
   return (
-    
+
     <>
-      {response === null && <form onSubmit={(e) => handleWeather(e)}>
-        <div className="container py-4 px-3 mx-auto">
-          <label htmlFor="city">City name</label>
-          <input type="city" className="form-control" id="city" placeholder="Enter city" value={city} maxLength={25}
-            onChange={e => { setCity(e.target.value.trim()) }} />
+      <Suspense fallback={<Loading />}>
+        <form onSubmit={(e) => handleWeather(e)}>
           <div className="container py-4 px-3 mx-auto">
-          <button type="submit" className="btn btn-primary">Submit</button>
+            <label htmlFor="city">City name</label>
+            <input type="city" className="form-control" id="city" placeholder="Enter city" value={city} maxLength={25}
+              onChange={e => { setCity(e.target.value.trim()); setResponse(null) }} />
+            <div className="container py-4 px-3 mx-auto">
+              <Button variant="outline-primary" type="submit">Submit</Button>
+            </div>
           </div>
-        </div>
-     </form>}
-      {response !== null && 
-      <WeatherOutput response ={response} />
-    }
+        </form>
+        {
+          response !== null &&
+          <WeatherOutput response={response} />
+        }
+      </Suspense>
     </>
   )
 }
