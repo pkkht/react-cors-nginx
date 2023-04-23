@@ -1,12 +1,16 @@
-import { FormEvent, Suspense, useState } from "react"
-import WeatherOutput from "./WeatherOutput.js"
+import { FormEvent, Suspense, useState, lazy } from "react"
 import Loading from "./Loading.js";
 import { Button } from 'react-bootstrap';
+import { ErrorBoundary } from "react-error-boundary";
+
+const WeatherOutput = lazy(() => delayForDemo(import('./WeatherOutput.js')));
+
 
 function App() {
 
   const [city, setCity] = useState('');
   const [response, setResponse] = useState(null);
+  const [error, setError] = useState([]);
 
   const handleWeather = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -20,16 +24,33 @@ function App() {
       };
 
       fetch('https://weatherapi-com.p.rapidapi.com/current.json?q=' + city, options)
-        .then(response => response.json())
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          }
+          response.json().then((data) => {
+            setError(data);
+          });
+        })
         .then(response => setResponse(response))
-        .catch(err => console.error(err));
-    }, 8000);
+        .catch(err => setError(err));
+    });
 
   }
-
+  const fallbackRender = () => {
+    console.log("error is:"+ error.keys);
+    return (
+      <div role="alert">
+        <p>Something went wrong:</p>
+        {error.map(e => <div>{e}</div>)}
+      </div>
+    );
+  }
+  
   return (
 
     <>
+    <ErrorBoundary fallbackRender={fallbackRender}>
       <Suspense fallback={<Loading />}>
         <form onSubmit={(e) => handleWeather(e)}>
           <div className="container py-4 px-3 mx-auto">
@@ -46,9 +67,18 @@ function App() {
           <WeatherOutput response={response} />
         }
       </Suspense>
+      </ErrorBoundary>
     </>
   )
 }
 
-export default App
+// Add a fixed delay so you can see the loading state
+async function delayForDemo(promise: Promise<typeof import("./WeatherOutput.js")>) {
+  await new Promise(resolve => {
+    setTimeout(resolve, 5000);
+  });
+  return await promise;
+}
 
+
+export default App
