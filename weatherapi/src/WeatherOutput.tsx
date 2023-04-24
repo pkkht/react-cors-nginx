@@ -5,10 +5,10 @@ const WeatherOutput = (props: { response: { location: { name: string | number | 
 
     return (
         <>
-            <Alert key="success" variant="success">
-                <p>Cloud: {props.response.current.cloud}</p>
-                <p>City: {props.response.location.name}</p>
-            </Alert>
+                <Alert key="success" variant="success">
+                    <p>Cloud: {props.response.current.cloud}</p>
+                    <p>City: {props.response.location.name}</p>
+                </Alert>
         </>
     )
 
